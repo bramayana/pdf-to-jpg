@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PDF to JPG Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    padding:30px;
+}
+canvas{
+    border:1px solid #ccc;
+    margin-top:20px;
+}
+button{
+    margin-top:10px;
+    padding:10px 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>PDF to JPG Converter</h2>
+
+<input type="file" id="pdfUpload" accept="application/pdf">
+<br>
+
+<canvas id="pdfCanvas"></canvas>
+<br>
+
+<button onclick="downloadJPG()">Download JPG</button>
+
+<script>
+
+let canvas = document.getElementById("pdfCanvas");
+let ctx = canvas.getContext("2d");
+
+document.getElementById("pdfUpload").addEventListener("change", function(e){
+
+    let file = e.target.files[0];
+    let reader = new FileReader();
+
+    reader.onload = function(){
+        let typedarray = new Uint8Array(this.result);
+
+        pdfjsLib.getDocument(typedarray).promise.then(function(pdf){
+
+            pdf.getPage(1).then(function(page){
+
+                let viewport = page.getViewport({scale:2});
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                let renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                page.render(renderContext);
+            });
+
+        });
+    };
+
+    reader.readAsArrayBuffer(file);
+
+});
+
+function downloadJPG(){
+
+    let link = document.createElement("a");
+    link.download = "converted.jpg";
+    link.href = canvas.toDataURL("image/jpeg");
+    link.click();
+
+}
+
+</script>
+
+</body>
+</html>
